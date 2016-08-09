@@ -6,29 +6,47 @@ import java.awt.Dimension;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseEvent;
 import java.awt.GridLayout;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 
 public class MouseMotionEventDemo extends JPanel
         implements MouseMotionListener {
+    final String HOST = "10.188.44.145";
+    final int PORT = 8080;
 
-    public final ImageIcon getImage() {
+    public final BufferedImage getImage() {
         MyHttpClient myHttpClient = new MyHttpClient();
-        ImageIcon icon = myHttpClient.request("10.188.44.42", 8083);
-        System.out.println(icon.getIconWidth());
-        System.out.println(icon.getIconHeight());
-        return icon;
+        BufferedImage image = myHttpClient.request(HOST, PORT);
+        System.out.println(image.getWidth());
+        System.out.println(image.getHeight());
+        return image;
     }
-    public final ImageIcon getImageFromFile() {
-        ImageIcon icon = new ImageIcon("image02.png");
-        return icon;
+
+    public final BufferedImage getImageFromFile() {
+        File file = new File("image02.png");
+        try {
+            BufferedImage image =
+                    ImageIO.read(new File(getClass().getResource("image02.png").toURI()));
+            return image;
+        } catch (URISyntaxException e) {
+            System.out.println(e.getMessage());
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
+        return new BufferedImage(600,
+                450, BufferedImage.TYPE_INT_RGB);
     }
 
     public final void sendLine(Line line) {
         MyHttpClient myHttpClient = new MyHttpClient();
-        Boolean success = myHttpClient.sendLine("10.188.44.42", 8083, line.toJson());
+        Boolean success = myHttpClient.sendLine(HOST, PORT, line.toJson());
     }
 
     BlankArea blankArea;
@@ -87,12 +105,12 @@ public class MouseMotionEventDemo extends JPanel
 
     public MouseMotionEventDemo() {
         super(new GridLayout(0,1));
-        //ImageIcon icon = createImageIcon("image02.png", "background");
-        ImageIcon icon = getImage();
+//        BufferedImage image = getImageFromFile();
+        BufferedImage image = getImage();
 //        JLabel area = new JLabel("Background", icon, JLabel.CENTER);
-        blankArea = new BlankArea(icon);
-        int Height = icon.getIconHeight();
-        int Width = icon.getIconWidth();
+        blankArea = new BlankArea(image);
+        int Height = image.getHeight();
+        int Width = image.getWidth();
         //blankArea. setSize(Height, Width);
         add(blankArea);
 //        add(area);
@@ -125,12 +143,16 @@ public class MouseMotionEventDemo extends JPanel
             mousePressed = true;
             Position pos = new Position(e.getX(), e.getY());
             positions.add(pos);
-            textArea.setCaretPosition(textArea.getDocument().getLength());
+            blankArea.setPositions(positions);
+            blankArea.repaint();
+            //textArea.setCaretPosition(textArea.getDocument().getLength());
         } else {
             if (mousePressed) {
                 Line line = new Line(positions);
+                blankArea.setPositions(positions);
+                blankArea.repaint();
                 System.out.println("line created\n");
-                System.out.println(line.getByIndex(line.length() - 1));
+//                System.out.println(line.getByIndex(line.length() - 1));
                 sendLine(line);
                 mousePressed = false;
             }

@@ -13,7 +13,7 @@ import java.net.Socket;
  * Created by vsinevic on 13.07.2016.
  */
 public class MyHttpClient {
-    public final ImageIcon request(String ip, int port) {
+    public final BufferedImage request(String ip, int port) {
         try {
             System.out.println("connecting\n");
             Socket socket = new Socket(ip, port);
@@ -27,12 +27,14 @@ public class MyHttpClient {
             InputStream inputStream = socket.getInputStream();
             System.out.println("reading image\n");
             BufferedImage bufferedImage = ImageIO.read(inputStream);
-            ImageIcon icon = new ImageIcon(bufferedImage);
-            System.out.println("image ready\n");
-            return icon;
+//            ImageIcon icon = new ImageIcon(bufferedImage);
+//            System.out.println("image ready\n");
+//            return icon;
+            return bufferedImage;
         } catch(IOException e) {
             System.out.printf("can't connect\n");
-            return new ImageIcon();
+            return new BufferedImage(600,
+                    450, BufferedImage.TYPE_INT_RGB);
         }
     }
 
