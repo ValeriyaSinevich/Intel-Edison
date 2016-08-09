@@ -8,9 +8,10 @@ import skvideo.io as sk
 
 class Server:
     def __init__(self, port):
-        self.host = '10.188.44.42'
+        self.host = '10.188.44.145'
         self.port = port
-        self.cap = cv2.VideoCapture(1)
+        self.cap = cv2.VideoCapture(0)
+        #if you want to read video from file instead, uncomment next line
         # cap = sk.VideoCapture("16_3_5.avi")
         ret, frame = self.cap.read()
         if not ret:
@@ -18,6 +19,7 @@ class Server:
             return
         else:
             print frame.shape
+            #store image
             cv2.imwrite("background.jpg", frame);
             self.filename = "background.jpg"
 
@@ -32,15 +34,20 @@ class Server:
         print ('Server successfully acquired the socket with port:', self.port)
         self._wait_for_connections()
 
+    #loop function which listens to incoming data until timeout exceeds limit
     def recv_timeout(self, conn, timeout=2):
+        #data to return
         total_data = [];
+        #we have to make connection non-blocking, otherwise it will be impossible to do anything untill connection is closed
         conn.setblocking(0)
+        #piece of data to be received
         data = '';
         begin = time.time()
         while 1:
             if total_data and time.time() - begin > timeout:
                 print "no more data\n"
                 break
+            #if timeout exceeds limit
             elif time.time() - begin > 2 * timeout:
                 print "no data at all\n"
                 break
@@ -57,6 +64,7 @@ class Server:
         print (time.time() - begin)
         return ''.join(total_data)
 
+    #function to wait for oncoming connection fro Java client
     def _wait_for_connections(self):
         while True:
             self.socket.listen(1)
@@ -97,16 +105,18 @@ class Server:
             dict_writer = csv.DictWriter(f, fieldnames)
             dict_writer.writeheader()
             dict_writer.writerows(rows)
-            print('file written\n')
+            print('line written to file  \'line.csv\' \n')
 
-    def graceful_shutdown(sig):
+    #function to free ost before closing
+    def graceful_shutdown(sig, signum, stack):
         s.shutdown()
         self.cap.release()
         import sys
         sys.exit(1)
 
 print ('Starting web server')
-s = Server(8083)
+s = Server(8080)
+#connect handler to the abort signal
 signal.signal(signal.SIGINT, s.graceful_shutdown)
 s.activate_server()
 
